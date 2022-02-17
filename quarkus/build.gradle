@@ -1,0 +1,82 @@
+group("com.tabuyos")
+version("1.0")
+
+allprojects {
+  group(group)
+  version(version)
+
+  repositories {
+    def ALIYUN_CENTRAL_URL = "https://maven.aliyun.com/repository/central/"
+    def ALIYUN_PUBLIC_URL = "https://maven.aliyun.com/repository/public/"
+    def TENCENT_PUBLIC_URL = "https://mirrors.cloud.tencent.com/nexus/repository/maven-public/"
+    def HUAWEI_PUBLIC_URL = "https://repo.huaweicloud.com/repository/maven/"
+
+    maven {
+      url HUAWEI_PUBLIC_URL
+      name "HuaweiPublic"
+    }
+    maven {
+      url TENCENT_PUBLIC_URL
+      name "TencentPublic"
+    }
+    maven {
+      url ALIYUN_CENTRAL_URL
+      name "AliyunCentral"
+    }
+    maven {
+      url ALIYUN_PUBLIC_URL
+      name "AliyunPublic"
+    }
+    mavenCentral()
+    mavenLocal()
+  }
+
+  tasks.register("showRepos") {
+    doLast {
+      println "All repos:"
+      println repositories.collect { it.name }
+    }
+  }
+}
+
+subprojects {
+  apply plugin: "java-library"
+  apply plugin: "java"
+  apply plugin: "idea"
+
+  configurations {
+    developmentOnly
+    runtimeClasspath {
+      extendsFrom developmentOnly
+    }
+    compileOnly {
+      extendsFrom annotationProcessor
+    }
+  }
+
+  compileJava.inputs.files(processResources)
+
+  test {
+    useJUnitPlatform()
+    // note: JavaVersion > JavaVersion.VERSION_1_8
+    jvmArgs("--illegal-access=deny")
+    jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+  }
+
+  java {
+    sourceCompatibility = JavaVersion.VERSION_16
+    targetCompatibility = JavaVersion.VERSION_16
+  }
+
+  // download javadoc and source file.
+  idea {
+    module {
+      // downloadJavadoc = true
+      downloadSources = true
+    }
+  }
+
+  tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+  }
+}
